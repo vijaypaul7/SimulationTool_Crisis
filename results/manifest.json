@@ -1,0 +1,43 @@
+{
+  "pipeline_version": "2.0",
+  "primary_target": "gva_yoy",
+  "secondary_target": "retail_pct",
+  "train_end": "2020-12-31",
+  "test_start": "2021-01-01",
+  "targets": [
+    "GVA",
+    "Retail"
+  ],
+  "feature_sets": [
+    "AR-only",
+    "Energy+AR",
+    "Energy+Behavioural+AR",
+    "Full"
+  ],
+  "models": [
+    "Naive",
+    "SeasonalNaive",
+    "Ridge",
+    "ElasticNet",
+    "HistGradientBoosting",
+    "XGBoost"
+  ],
+  "metrics": [
+    "mae",
+    "rmse",
+    "r2",
+    "directional_accuracy",
+    "cv_rmse"
+  ],
+  "n_result_rows": 48,
+  "n_prediction_rows": 2496,
+  "n_failures": 0,
+  "files": {
+    "metrics": "forecast_metrics.csv",
+    "predictions": "forecast_predictions_all.csv",
+    "failures": "forecast_failures.json",
+    "manifest": "manifest.json",
+    "energy_vs_beh": "energy_vs_behavioural.csv"
+  },
+  "leakage_notes": "Behavioural variables (fundamentalist_weight, extrapolator_weight, behavioural_response) were computed by the ABM using fuel.shift(-1) as the realised price target.  This embeds mild look-ahead in the rolling MSFE.  The Energy+AR model does NOT use behavioural features and is leakage-free.  Behavioural features are used only in Energy+Behavioural+AR and Full, where an extra lag(1) was applied at merge time as a partial mitigation."
+}

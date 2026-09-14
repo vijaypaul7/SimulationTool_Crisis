@@ -1,0 +1,205 @@
+Comprehensive Project Alignment & Verification Audit
+Project: Simulation Tool for Economic Crisis Prediction
+Client / Organisation: Lambda BI Ltd • Cemre Yoldas
+Audit Purpose: Strict, line-by-line verification between the Project Brief / Requirements, the Actual Codebase Implementation, and the Empirical Results Files.
+
+1. Executive Reconciliation Matrix: Project Brief vs. Implementation
+Project Requirement (Brief)	Implementation Status in Workspace Files	Evidence & File Locations	Exact Discrepancies & Audit Findings
+Comprehensive Literature Review	Not found in provided files	Theoretical foundations outlined in pages/2_📐_Analytical_Framework.py.	No formal literature review document, academic bibliography, or reading synthesis PDF/markdown exists in the workspace.
+Multi-Source Dataset Integration & Preprocessing	Fully Implemented	data/uk_macro_integrated.csv, config.py, modules/data_loader.py.	263 monthly observations (2003-06 to 2025-04) integrating ONS GVA, retail sales, CPIH, unemployment, consumption, Bank of England rate, and DESNZ/BEIS fuel prices. Cleaning includes boundary trimming by critical series, time-aware interpolation, step rate forward-filling, and 
+ consumption outlier filtering.
+Advanced Data Analytics: Time Series	Fully Implemented	modules/analytics_engine.py, pages/1_📈_Macro_Dashboard.py, pages/2_📊_Data_Explorer.py.	Time series rolling volatility, lagged cross-correlations (
+), stationarity differencing, VAR(p) with AIC lag selection, and Cholesky impulse response functions.
+Advanced Data Analytics: Clustering	Not Implemented	pages/2_📊_Data_Explorer.py	PCA (scree plot & 2D component loadings) is implemented; however, formal clustering algorithms (such as K-Means, Agglomerative Hierarchical, or DBSCAN) do not exist in the Python files.
+Advanced Data Analytics: Anomaly Detection	Partially Implemented	modules/data_loader.py, modules/analytics_engine.py	Implemented via: (1) 
+ outlier detection on total_consumption_cvm, (2) 90th percentile thresholding for monthly fuel price spikes (identify_energy_shocks). Machine learning anomaly detection algorithms (e.g., Isolation Forest, One-Class SVM) are not present.
+Predictive Approaches: ARIMA	Not Implemented	modules/forecasting_models.py	Classical Box-Jenkins ARIMA / SARIMAX models are absent from the codebase. The project relies on Naive and SeasonalNaive persistence baselines instead.
+Predictive Approaches: Prophet	Not Implemented	modules/forecasting_models.py, requirements.txt	Meta's Prophet package is neither listed in requirements.txt nor imported or implemented in any code file.
+Predictive Approaches: LSTM	Implemented in Code; Absent in Baked Results	modules/forecasting_models.py (lines 173–216)	A 2-layer Keras LSTM architecture (LSTM(32) 
+ Dropout(0.2) 
+ LSTM(16)
+ Dense(8) 
+ Dense(1)) is fully implemented with lookback=12 and EarlyStopping. However, it is an opt-in parameter (include_lstm=False by default) and was not included in results/forecast_metrics.csv or results/forecast_predictions_all.csv.
+Predictive Approaches: Machine Learning (Linear & Boosted Trees)	Fully Implemented & Evaluated	modules/forecasting_models.py, results/forecast_metrics.csv	Ridge, ElasticNet, HistGradientBoosting, and XGBoost are implemented with TimeSeriesSplit (5-fold) cross-validation and hyperparameter grid searches.
+Simulation Framework Linking Consumer Behaviour to Macro Outcomes	Fully Implemented	modules/abm_simulator.py, pages/5_🧪_Simulation_Studio.py, pages/7_🕹️_Scenario_Explorer.py	Structural ABM featuring: (1) Dual expectation formation (Fundamentalist vs. Extrapolator), (2) Dynamic weight updating using softmax over rolling 12-month MSFE, (3) Composite consumption response (
+), and (4) OLS regression transmission linking lagged 
+(
+) to changes in GVA growth (
+).
+Model Testing, Validation & Diagnostics	Fully Implemented	modules/validation_metrics.py, pages/6_✅_Validation.py, results/	Out-of-sample evaluation on 52 contiguous monthly observations (2021-01 to 2025-04). Metrics: RMSE, MAE, 
+, Directional Accuracy (MDA), CV RMSE, MSFE. Diagnostic checks include residual timeline tracking, error distribution histograms, and stability classifications.
+Interactive User Interface / Prototype	Fully Implemented	app.py, pages/1_📈 to pages/8_🏛️	Streamlit multi-page dashboard featuring 8 dedicated modules covering macro overviews, data explorer, formal theoretical framework, crisis analytics, forecast benchmarks, ABM simulation, model validation, scenario sandbox, and stakeholder takeaways.
+Structured Documentation of Methodology & Results	Fully Implemented	pages/2_📐_Analytical_Framework.py, results/manifest.json, and technical report.	Complete mathematical formulations, parameter tables, and explicit documentation of methodology and data leakage.
+2. Granular Data & Pipeline Integrity Verification
+
+2.1 Sample Boundaries and Split Dates
+Full Sample Inception: 2003-06-01
+
+Full Sample Conclusion: 2025-04-01
+
+Total Cleaned Observations: 263 rows
+
+Training Period Boundary: 
+ (211 calendar months before lag trimming)
+
+Test Period Boundary: 
+ through 2025-04-01
+
+Exact Number of Test Observations: 52 months (
+)
+
+2.2 Leakage Audit
+Identified Leakage: Disclosed in results/manifest.json:
+
+"Behavioural variables (fundamentalist_weight, extrapolator_weight, behavioural_response) were computed by the ABM using fuel.shift(-1) as the realised price target. This embeds mild look-ahead in the rolling MSFE."
+Partial Mitigation in Code: In modules/forecasting_models.py, behavioural variables receive an extra lag (.shift(lag)) when merging into feature sets.
+
+Leakage-Free Baselines: The AR-only and Energy+AR models do not utilize ABM behavioural variables and are completely free from look-ahead leakage.
+
+3. Complete Verification of Empirical Results
+All figures below are re-verified directly against results/forecast_metrics.csv and results/energy_vs_behavioural.csv for the 
+ test period (2021-01-01 to 2025-04-01).
+
+3.1 Primary Target: Gross Value Added Year-on-Year Growth (GVA / gva_yoy)
+Feature Set	Model	Test MAE	Test RMSE	Test
+Directional Accuracy	CV RMSE
+Full	Ridge (Best Model)	1.784	3.963	0.678	84.6%	1.730
+Energy+AR	ElasticNet	1.752	3.972	0.676	86.5%	1.572
+Energy+Behavioural+AR	ElasticNet	1.752	3.972	0.676	86.5%	1.572
+Energy+AR	Ridge	1.786	3.972	0.676	86.5%	1.593
+Energy+Behavioural+AR	Ridge	1.786	3.972	0.676	86.5%	1.593
+AR-only	Ridge	1.716	4.025	0.667	84.6%	1.533
+AR-only	ElasticNet	1.709	4.037	0.665	84.6%	1.538
+Full	ElasticNet	1.613	4.072	0.660	84.6%	1.609
+AR-only	HistGradientBoosting	3.212	6.494	0.134	82.7%	2.666
+Full	XGBoost	3.385	6.537	0.123	76.9%	2.285
+AR-only	XGBoost	3.190	6.570	0.114	88.5%	2.244
+Energy+AR	HistGradientBoosting	3.186	6.616	0.101	84.6%	2.692
+Energy+Behavioural+AR	HistGradientBoosting	3.186	6.616	0.101	84.6%	2.692
+Full	HistGradientBoosting	3.192	6.671	0.087	84.6%	2.720
+Energy+AR	XGBoost	3.554	7.008	-0.008	71.2%	2.330
+Energy+Behavioural+AR	XGBoost	3.554	7.008	-0.008	71.2%	2.330
+AR-only / Any	Naive	10.727	12.647	-2.283	11.5%	—
+AR-only / Any	SeasonalNaive	9.558	15.240	-3.767	50.0%	—
+3.2 Secondary Target: Retail Sales Volume Index Growth (Retail / retail_pct)
+Feature Set	Model	Test MAE	Test RMSE	Test 
+Directional Accuracy	CV RMSE
+Energy+AR	Ridge (Best Model)	1.415	2.137	-0.032	51.9%	1.649
+Energy+Behavioural+AR	Ridge	1.415	2.137	-0.032	51.9%	1.649
+AR-only	ElasticNet	1.401	2.147	-0.042	46.2%	1.602
+AR-only	Ridge	1.401	2.149	-0.043	46.2%	1.627
+Full	Ridge	1.420	2.152	-0.047	53.8%	1.661
+Energy+AR	ElasticNet	1.403	2.156	-0.051	44.2%	1.603
+Energy+Behavioural+AR	ElasticNet	1.403	2.156	-0.051	44.2%	1.603
+Full	ElasticNet	1.403	2.156	-0.051	44.2%	1.605
+AR-only	HistGradientBoosting	1.406	2.190	-0.084	53.8%	1.595
+Energy+AR	HistGradientBoosting	1.460	2.206	-0.100	44.2%	1.602
+Energy+Behavioural+AR	HistGradientBoosting	1.460	2.206	-0.100	44.2%	1.602
+AR-only / Any	Naive	1.541	2.241	-0.135	44.2%	—
+Full	HistGradientBoosting	1.499	2.243	-0.137	44.2%	1.600
+Full	XGBoost	1.467	2.247	-0.142	38.5%	1.590
+Energy+AR	XGBoost	1.503	2.307	-0.203	44.2%	1.582
+Energy+Behavioural+AR	XGBoost	1.503	2.307	-0.203	44.2%	1.582
+AR-only	XGBoost	1.489	2.372	-0.272	50.0%	1.570
+AR-only / Any	SeasonalNaive	3.083	5.102	-4.884	38.5%	—
+4. Energy & Behavioural Impact Verification
+The exact ablation impacts from results/energy_vs_behavioural.csv verify the following empirical realities:
+
+
+
+4.1 Verification Findings
+Marginal Impact of Energy Variables on GVA:
+
+Benefited linear regularised models: ElasticNet improved by +1.62% (RMSE 4.037 
+ 3.972), Ridge improved by +1.32% (RMSE 4.025 
+3.972).
+
+Degraded tree models: HistGB deteriorated by -1.88% (RMSE 6.494 
+6.616), XGBoost deteriorated by -6.67% (RMSE 6.570 
+ 7.008).
+
+Marginal Impact of Energy Variables on Retail Sales:
+
+Benefited XGBoost (+2.76%) and Ridge (+0.54%).
+
+Degraded ElasticNet (-0.40%) and HistGB (-0.74%).
+
+Marginal Impact of Behavioural (ABM) Variables:
+
+Exactly 0.00% across all models and both targets.
+
+In the baked empirical results, energy_beh_ar_rmse is mathematically identical to energy_ar_rmse (e.g., GVA Ridge: 3.9721107 vs 3.9721107; GVA ElasticNet: 3.9716684 vs 3.9716684). Adding the agent-based behavioural features did not reduce out-of-sample RMSE over Energy+AR.
+
+5. Structural ABM & Transmission Verification
+
+5.1 Parameter Specifications (config.py:ABM_PARAMS)
+Extrapolation strength: 
+
+Strategy switching intensity: 
+
+Fundamentalist shock sensitivity: 
+
+Extrapolator shock sensitivity: 
+
+5.2 Heuristic Formulas Verified in modules/abm_simulator.py
+Fundamentalist Expectation:
+
+Extrapolator Expectation:
+
+Dynamic Selection Weight:
+
+Behavioural Consumption Response:
+
+Macroeconomic Transmission to GVA:
+OLS regression of 
+ on 
+ across candidate lags 
+ months.
+
+6. Front-End Streamlit Multi-Page Alignment
+The user interface strictly exposes all elements required by the project across 8 distinct pages:
+
+app.py (Home): Navigation hub with 8 active routing cards, high-level metric strip (263 observations, June 2003 – April 2025), and full-sample Bank Rate vs CPIH comparison.
+
+pages/1_📈_Macro_Dashboard.py: 
+ time series grid with baseline indicators and dual-axis policy rate chart.
+
+pages/2_📊_Data_Explorer.py: Interactive date-slider EDA with 4 tabs: Correlation Heatmap, Bivariate Scatter with polynomial trendline, PCA Scree & Loading Biplot, and Lagged CCF bars (
+ to 
+).
+
+pages/2_📐_Analytical_Framework.py: Formal LaTeX theoretical reference for ABM equations, VAR ordering, standardized stress score formula, and crisis episode registry.
+
+pages/3_🔍_Analytics_Engine.py: Econometric crisis impact heatmap, 90th percentile energy shock detection with Welch's 
+-tests, rolling volatility metrics (3, 6, 12, 24 months), and VAR(p) impulse response curves with Granger causality testing.
+
+pages/4_🔮_Forecast_Lab.py: Dedicated ML benchmark viewer consuming results/ files with target and feature set selectors, RMSE model comparison bar chart, actual vs. predicted timeline, and interactive residual inspector.
+
+pages/5_🧪_Simulation_Studio.py: Interactive ABM sandbox with 5 sliders (
+, interest-rate shock in bps), time-series plots of 
+ vs 
+, and empirical GVA transmission lag analysis (
+).
+
+pages/6_✅_Validation.py: Model validation portal with ABM MSFE rankings, rolling MSFE stability over time, target-specific ML benchmark leaderboards, stability status classifications, and residual timeline & histogram diagnostics.
+
+pages/7_🕹️_Scenario_Explorer.py: Scenario comparison engine with pre-configured shocks (Monetary Tightening, Stagflation, Policy Easing, COVID-style Collapse) and horizon controls (6–48 months).
+
+pages/8_🏛️_Stakeholder_Gateway.py: Executive portal translating statistical results into standardized stress scores in units of 
+, monetary policy start-to-end response charts, current dominant agent regimes, and dynamic takeaway summaries.
+
+7. Audit Conclusion: UNVERIFIED / NOT FOUND IN PROVIDED FILES
+To maintain complete scientific and professional integrity, the following items from the Project Brief or standard macroeconomic workflows are explicitly catalogued as unsupported or absent in the workspace files:
+
+Standalone Literature Review: No literature review document, academic bibliography file, or chapter was provided.
+
+ARIMA & Prophet: Although listed under key requirements in the project brief, neither ARIMA/SARIMAX nor Prophet is present in the codebase.
+
+Unsupervised Clustering & ML Anomaly Detection: No K-Means, hierarchical clustering, DBSCAN, or Isolation Forest algorithms are implemented; EDA relies on PCA, correlation matrices, 
+ clipping, and percentile shock thresholding.
+
+LSTM Out-of-Sample Results: The LSTM network is fully coded in modules/forecasting_models.py, but was not run or baked into the results CSV files.
+
+Consumption Units: The exact denomination of total_consumption_cvm (e.g., millions of chained pounds vs index base) is not explicitly labelled in the data source.
+
+Causal Claims: The provided econometric models establish empirical correlation, lag lead/lag association, and reduced-form VAR impulse responses, but do not prove structural economic causality

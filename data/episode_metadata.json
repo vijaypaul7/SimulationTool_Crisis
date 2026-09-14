@@ -1,0 +1,7 @@
+{
+  "2008 Financial Crisis": {"start": "2008-09", "end": "2009-06", "group": "Systemic", "description": "Global banking crisis following Lehman collapse."},
+  "2011-2012 Eurozone Crisis": {"start": "2011-06", "end": "2012-03", "group": "Systemic", "description": "Sovereign debt crisis in the euro area."},
+  "2015-2016 Oil Price Crash": {"start": "2014-10", "end": "2016-02", "group": "Commodity", "description": "Collapse in global crude prices."},
+  "COVID-19 Pandemic": {"start": "2020-03", "end": "2021-06", "group": "Systemic", "description": "Global pandemic lockdown shock."},
+  "2022 Inflation Surge": {"start": "2022-03", "end": "2023-08", "group": "Monetary", "description": "Post-pandemic inflation and rate-tightening cycle."}
+}
