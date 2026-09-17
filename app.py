@@ -87,7 +87,7 @@ if df is not None and len(df) > 0:
     latest = df.iloc[-1]
     c1, c2, c3, c4, c5 = st.columns(5)
     c1.metric("Rows", f"{len(df):,}")
-    c2.metric("Sample", f"{df['month'].min():%Y-%m} → {df['month'].max():%Y-%m}")
+    c2.metric("Sample", f"{df['month'].min():%Y} → {df['month'].max():%Y}")
 
     def _fmt(col, unit=""):
         if col in df.columns:
