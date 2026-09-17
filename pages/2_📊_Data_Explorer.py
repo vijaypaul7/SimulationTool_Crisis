@@ -116,14 +116,24 @@ with tab3:
         a1.set_xlabel("PC"); a1.set_ylabel("Variance %")
         a1.set_title("Scree", fontweight="bold"); a1.grid(True, alpha=0.3)
 
-        loadings = pd.DataFrame(pca.components_.T,
-                                columns=[f"PC{i+1}" for i in range(len(pca.components_))],
-                                index=pca_data.columns)
-        a2.scatter(loadings["PC1"], loadings["PC2"], s=100, color="#2ECC71",
-                   edgecolors="black", linewidth=1)
+        loadings = pd.DataFrame(
+            pca.components_.T,
+            columns=[f"PC{i+1}" for i in range(len(pca.components_))],
+            index=pca_data.columns,
+        )
+        
+        a2.scatter(
+            loadings["PC1"], loadings["PC2"],
+            s=100, color="#2ECC71",
+            edgecolors="black", linewidth=1,
+        )
+        
         for i, v in enumerate(pca_data.columns):
-            a2.annotate(v, (loadings["PC1"][i], loadings["PC2"][i]),
-                        fontsize=10, ha="center", va="bottom")
+            a2.annotate(
+                v,
+                (loadings["PC1"].iloc[i], loadings["PC2"].iloc[i]),   # ← .iloc here
+                fontsize=10, ha="center", va="bottom",
+            )
         a2.axhline(0, color="gray", linewidth=0.8, alpha=0.5)
         a2.axvline(0, color="gray", linewidth=0.8, alpha=0.5)
         a2.set_xlabel(f"PC1 ({pca.explained_variance_ratio_[0]*100:.1f}%)")
