@@ -28,6 +28,8 @@ It combines:
 ## Project Structure
 
 ```
+
+## File Structure
 .
 ├── app.py                     # Entry point + navigation
 ├── config.py                  # Parameters, episodes, rename map
